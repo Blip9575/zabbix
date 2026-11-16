@@ -58,6 +58,8 @@ Please provide the necessary access levels for both the User and the Token:
 
 3. Set the hostname or IP address of the Proxmox API VE host in the `{$PVE.URL.HOST}` macro. You can also change the API port in the `{$PVE.URL.PORT}` macro if necessary.
 
+4. Optional: to keep problems of selected guests out of notifications, give them a Proxmox VE tag (by default `dev` or `decom`; see `{$PVE.TAGS.MUTE}`). Their triggers get the tag `notify=muted`; add the condition "Tag `notify` does not equal `muted`" to your actions. The problems stay visible in Zabbix.
+
 ### Macros used
 
 |Name|Description|Default|
@@ -68,6 +70,7 @@ Please provide the necessary access levels for both the User and the Token:
 |{$PVE.TOKEN.SECRET}|<p>Secret key.</p>||
 |{$HTTP.TLS.VERIFY}|<p>TLS certificate verification for script items: "none" - disabled, "peer" - verify the certificate chain and expiration, "full" - full verification. Any other value enables full verification. To override the setting for this template only, define the macro with the context "Proxmox VE", e.g. {$HTTP.TLS.VERIFY:"Proxmox VE"}.</p>|`full`|
 |{$PVE.PROXY}|<p>Proxy settings for the Proxmox VE API.</p>||
+|{$PVE.TAGS.MUTE}|<p>Regular expression matched against a guest's Proxmox VE tags (";"-separated). Triggers of matching LXC containers and QEMU virtual machines get the tag `notify=muted`, so actions can skip them.</p>|`(^\|;)(dev\|decom)(;\|$)`|
 |{$PVE.PARAMS.INTERVAL.CLUSTER}|<p>Interval for cluster data retrieval.</p>|`1m`|
 |{$PVE.PARAMS.INTERVAL.USER}|<p>Interval for user data retrieval.</p>|`1h`|
 |{$PVE.PARAMS.INTERVAL.NODE}|<p>Interval for node data retrieval.</p>|`1m`|

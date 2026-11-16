@@ -497,7 +497,8 @@ zabbix_export:
             					'vmid': Proxmox.getField(resource, 'vmid'),
             					'name': Proxmox.getField(resource, 'name', 'vmid', true),
             					'status': Proxmox.getField(resource, 'status', 'unknown'),
-            					'node': Proxmox.getField(resource, 'node')
+            					'node': Proxmox.getField(resource, 'node'),
+            					'tags': Proxmox.getField(resource, 'tags', '')
             				});
             
             				if (Proxmox.getField(resource, 'status') === 'running') {
@@ -512,7 +513,8 @@ zabbix_export:
             					'vmid': Proxmox.getField(resource, 'vmid'),
             					'name': Proxmox.getField(resource, 'name', 'vmid', true),
             					'status': Proxmox.getField(resource, 'status', 'unknown'),
-            					'node': Proxmox.getField(resource, 'node')
+            					'node': Proxmox.getField(resource, 'node'),
+            					'tags': Proxmox.getField(resource, 'tags', '')
             				});
             
             				if (Proxmox.getField(resource, 'status') === 'running') {
@@ -1799,10 +1801,27 @@ zabbix_export:
               path: $.name
             - lld_macro: '{#LXC.STATUS}'
               path: $.status
+            - lld_macro: '{#LXC.TAGS}'
+              path: $.tags
             - lld_macro: '{#LXC.VMID}'
               path: $.vmid
             - lld_macro: '{#NODE.NAME}'
               path: $.node
+          overrides:
+            - name: 'Mute notifications (PVE tags)'
+              step: '1'
+              filter:
+                conditions:
+                  - macro: '{#LXC.TAGS}'
+                    value: '{$PVE.TAGS.MUTE}'
+                    formulaid: A
+              operations:
+                - operationobject: TRIGGER_PROTOTYPE
+                  operator: REGEXP
+                  value: .
+                  tags:
+                    - tag: notify
+                      value: muted
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -2440,8 +2459,25 @@ zabbix_export:
               path: $.name
             - lld_macro: '{#QEMU.STATUS}'
               path: $.status
+            - lld_macro: '{#QEMU.TAGS}'
+              path: $.tags
             - lld_macro: '{#QEMU.VMID}'
               path: $.vmid
+          overrides:
+            - name: 'Mute notifications (PVE tags)'
+              step: '1'
+              filter:
+                conditions:
+                  - macro: '{#QEMU.TAGS}'
+                    value: '{$PVE.TAGS.MUTE}'
+                    formulaid: A
+              operations:
+                - operationobject: TRIGGER_PROTOTYPE
+                  operator: REGEXP
+                  value: .
+                  tags:
+                    - tag: notify
+                      value: muted
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -4872,6 +4908,19 @@ zabbix_export:
             description: |
               The proxy settings for the Proxmox VE API.
               Set empty value if you do not want to use a proxy.
+            regex: '.*'
+        - macro: '{$PVE.TAGS.MUTE}'
+          value: '(^|;)(dev|decom)(;|$)'
+          description: 'Regular expression matched against a guest''s Proxmox VE tags (";"-separated). Triggers of matching LXC containers and QEMU virtual machines get the tag "notify=muted", so actions can skip them.'
+          config:
+            type: TEXT
+            priority: '9'
+            section_name: Other
+            label: 'Mute notifications for guests with these PVE tags'
+            description: |
+              Regular expression matched against a guest's Proxmox VE tags (";"-separated).
+              Triggers of matching LXC containers and QEMU virtual machines get the problem tag "notify=muted",
+              so an action can skip them (condition: tag "notify" does not equal "muted").
             regex: '.*'
         - macro: '{$PVE.TOKEN.ID}'
           value: USER@REALM!TOKENID
