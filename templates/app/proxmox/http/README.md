@@ -289,7 +289,6 @@ Please provide the necessary access levels for both the User and the Token:
 
 |Name|Description|Expression|Severity|Dependencies and additional info|
 |----|-----------|----------|--------|--------------------------------|
-|Proxmox VE: Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Usage high|<p>The storage usage of {#STORAGE.NAME} on the node {#NODE.NAME} is high.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.storage.used[{#NODE.ID},{#STORAGE.NAME}]) / last(/Proxmox VE by HTTP/proxmox_ve.node.storage.total[{#NODE.ID},{#STORAGE.NAME}]) * 100 > {$PVE.TRIGGER.DISK.WARNING:"{#STORAGE.NAME}"}`|Warning||
 |Proxmox VE: Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Usage high|<p>The storage usage of {#STORAGE.NAME} on the node {#NODE.NAME} is high.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.storage.utilization[{#NODE.ID},{#STORAGE.NAME}]) > {$PVE.TRIGGER.DISK.WARNING:"{#STORAGE.NAME}"}`|Warning||
 
 ### LLD rule Proxmox LXC discovery
