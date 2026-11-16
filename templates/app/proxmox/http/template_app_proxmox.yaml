@@ -915,7 +915,22 @@ zabbix_export:
               expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.certificates.notafter[{#NODE.ID},{#CERT.FILENAME}]) < now() or last(/Proxmox VE by HTTP/proxmox_ve.node.certificates.notbefore[{#NODE.ID},{#CERT.FILENAME}]) > now()'
               name: 'Proxmox VE: Node [{#NODE.NAME}]: Certificate [{#CERT.FILENAME}]: Not valid'
               priority: AVERAGE
-              description: 'The certificate {#CERT.FILENAME} on the node {#NODE.NAME} expires in less than 7 days.'
+              description: 'The certificate {#CERT.FILENAME} on the node {#NODE.NAME} has expired or is not valid yet.'
+              tags:
+                - tag: scope
+                  value: certificates
+                - tag: scope
+                  value: node
+            - uuid: 3e2d08011df746b8be5c543c5d7ebc06
+              expression: '(last(/Proxmox VE by HTTP/proxmox_ve.node.certificates.notafter[{#NODE.ID},{#CERT.FILENAME}]) - now()) < {$PVE.CERT.EXPIRY.WARN:"{#CERT.FILENAME}"}'
+              name: 'Proxmox VE: Node [{#NODE.NAME}]: Certificate [{#CERT.FILENAME}]: Expires soon'
+              event_name: 'Proxmox VE: Node [{#NODE.NAME}]: Certificate [{#CERT.FILENAME}]: Expires in less than {$PVE.CERT.EXPIRY.WARN:"{#CERT.FILENAME}"}'
+              opdata: 'Valid until: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              description: 'The certificate {#CERT.FILENAME} on the node {#NODE.NAME} expires in less than {$PVE.CERT.EXPIRY.WARN:"{#CERT.FILENAME}"}. Proxmox VE renews ACME certificates automatically; a self-signed pve-ssl.pem is renewed by `pvecm updatecerts --force`.'
+              dependencies:
+                - name: 'Proxmox VE: Node [{#NODE.NAME}]: Certificate [{#CERT.FILENAME}]: Not valid'
+                  expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.certificates.notafter[{#NODE.ID},{#CERT.FILENAME}]) < now() or last(/Proxmox VE by HTTP/proxmox_ve.node.certificates.notbefore[{#NODE.ID},{#CERT.FILENAME}]) > now()'
               tags:
                 - tag: scope
                   value: certificates
@@ -4519,6 +4534,16 @@ zabbix_export:
                 text: 'Certificate chain only'
               - value: none
                 text: Disabled
+        - macro: '{$PVE.CERT.EXPIRY.WARN}'
+          value: 21d
+          description: 'Lead time for the "Certificate expires soon" trigger. This macro supports context (certificate file name).'
+          config:
+            type: TEXT
+            priority: '18'
+            section_name: Other
+            label: 'Certificate expiry warning (lead time)'
+            description: 'Warn when a node certificate expires within this time. Time suffixes are supported, e.g. 21d.'
+            regex: '^[0-9]+[smhdw]?$'
         - macro: '{$PVE.FILTER.CERT.FILE.MATCH}'
           value: '.*'
           description: 'Filter for certificate file discovery by name.'

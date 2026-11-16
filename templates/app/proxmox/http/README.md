@@ -64,6 +64,7 @@ Please provide the necessary access levels for both the User and the Token:
 
 |Name|Description|Default|
 |----|-----------|-------|
+|{$PVE.CERT.EXPIRY.WARN}|<p>Lead time for the "Certificate expires soon" trigger. This macro supports context (certificate file name).</p>|`21d`|
 |{$PVE.URL.HOST}|<p>The hostname or IP address of the Proxmox VE API host.</p>||
 |{$PVE.URL.PORT}|<p>The port number of the Proxmox VE API host.</p>|`8006`|
 |{$PVE.TOKEN.ID}|<p>API tokens allow stateless access to most parts of the REST API by another system, software or API client.</p>|`USER@REALM!TOKENID`|
@@ -246,7 +247,8 @@ Please provide the necessary access levels for both the User and the Token:
 
 |Name|Description|Expression|Severity|Dependencies and additional info|
 |----|-----------|----------|--------|--------------------------------|
-|Proxmox VE: Node [{#NODE.NAME}]: Certificate [{#CERT.FILENAME}]: Not valid|<p>The certificate {#CERT.FILENAME} on the node {#NODE.NAME} expires in less than 7 days.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.certificates.notafter[{#NODE.ID},{#CERT.FILENAME}]) < now() or last(/Proxmox VE by HTTP/proxmox_ve.node.certificates.notbefore[{#NODE.ID},{#CERT.FILENAME}]) > now()`|Average||
+|Proxmox VE: Node [{#NODE.NAME}]: Certificate [{#CERT.FILENAME}]: Not valid|<p>The certificate {#CERT.FILENAME} on the node {#NODE.NAME} has expired or is not valid yet.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.certificates.notafter[{#NODE.ID},{#CERT.FILENAME}]) < now() or last(/Proxmox VE by HTTP/proxmox_ve.node.certificates.notbefore[{#NODE.ID},{#CERT.FILENAME}]) > now()`|Average||
+|Proxmox VE: Node [{#NODE.NAME}]: Certificate [{#CERT.FILENAME}]: Expires soon|<p>The certificate expires in less than `{$PVE.CERT.EXPIRY.WARN}`.</p>|`(last(/Proxmox VE by HTTP/proxmox_ve.node.certificates.notafter[{#NODE.ID},{#CERT.FILENAME}]) - now()) < {$PVE.CERT.EXPIRY.WARN:"{#CERT.FILENAME}"}`|Warning|**Depends on**:<br><ul><li>Proxmox VE: Node [{#NODE.NAME}]: Certificate [{#CERT.FILENAME}]: Not valid</li></ul>|
 
 ### LLD rule Node [{#NODE.NAME}]: Disks discovery
 
