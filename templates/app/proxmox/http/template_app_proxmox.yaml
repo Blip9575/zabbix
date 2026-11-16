@@ -2109,10 +2109,13 @@ zabbix_export:
                   value: '{#QEMU.NAME}'
               trigger_prototypes:
                 - uuid: 88fecebb47ec4af89ea2d0f458e25b64
-                  expression: 'avg(/Proxmox VE by HTTP/proxmox_ve.node.qemu.memory.utilization[{#NODE.ID},{#QEMU.VMID}],5m) > {$PVE.TRIGGER.MEMORY.WARNING:"{#QEMU.NAME}"}'
+                  expression: 'avg(/Proxmox VE by HTTP/proxmox_ve.node.qemu.memory.utilization[{#NODE.ID},{#QEMU.VMID}],5m) > {$PVE.TRIGGER.MEMORY.WARNING:"{#QEMU.NAME}"} and last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.agent[{#NODE.ID},{#QEMU.VMID}]) <> 1'
                   name: 'Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Memory usage high'
                   priority: WARNING
-                  description: 'The memory usage of the QEMU virtual machine {#QEMU.NAME} on the node {#NODE.NAME} is high.'
+                  description: |
+                    The memory usage of the QEMU virtual machine {#QEMU.NAME} on the node {#NODE.NAME} is high.
+                    Evaluated only for VMs without the QEMU guest agent: from the hypervisor, a VM's memory includes the guest's
+                    caches (page cache, ZFS ARC), so a healthy guest with the agent (monitored from the inside) sits near 100%.
                   tags:
                     - tag: scope
                       value: notice
