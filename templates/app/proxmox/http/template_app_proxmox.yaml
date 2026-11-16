@@ -3351,8 +3351,44 @@ zabbix_export:
                 operator: NOT_MATCHES_REGEX
               - macro: '{#STORAGE.SHARED}'
                 value: '0'
-          description: 'Discovers storage devices on the node {#NODE.NAME}.'
+              - macro: '{#STORAGE.ENABLED}'
+                value: '1'
+          description: 'Discovers storage devices on the node {#NODE.NAME}. Storages disabled in Proxmox VE are skipped.'
           item_prototypes:
+            - uuid: 36c8022d813344bea3b7277241edf981
+              name: 'Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Active'
+              type: DEPENDENT
+              key: 'proxmox_ve.node.storage.active[{#NODE.ID},{#STORAGE.NAME}]'
+              description: 'Whether the storage device "{#STORAGE.NAME}" on the node {#NODE.NAME} is active (accessible): 1 - active, 0 - not active.'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.active
+                  error_handler: CUSTOM_VALUE
+                  error_handler_params: '0'
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 12h
+              master_item:
+                key: 'proxmox_ve.node.storage[{#NODE.ID},{#STORAGE.NAME}]'
+              tags:
+                - tag: component
+                  value: node
+                - tag: component
+                  value: storage
+                - tag: node
+                  value: '{#NODE.NAME}'
+                - tag: storage
+                  value: '{#STORAGE.NAME}'
+              trigger_prototypes:
+                - uuid: e9841ce4148a47e39cca1960761eada9
+                  expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.storage.active[{#NODE.ID},{#STORAGE.NAME}])=0'
+                  name: 'Proxmox VE: Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Not active'
+                  priority: AVERAGE
+                  description: 'The storage "{#STORAGE.NAME}" is enabled but not active on the node {#NODE.NAME}: Proxmox VE cannot access it (e.g. network storage unreachable, pool not imported).'
+                  tags:
+                    - tag: scope
+                      value: availability
             - uuid: 48fdd99d2647428f864bc26aa860deba
               name: 'Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Content'
               type: DEPENDENT
@@ -3459,7 +3495,7 @@ zabbix_export:
               key: 'proxmox_ve.node.storage.utilization[{#NODE.ID},{#STORAGE.NAME}]'
               value_type: FLOAT
               units: '%'
-              params: 'last(//proxmox_ve.node.storage.used[{#NODE.ID},{#STORAGE.NAME}]) / last(//proxmox_ve.node.storage.total[{#NODE.ID},{#STORAGE.NAME}]) * 100'
+              params: 'last(//proxmox_ve.node.storage.used[{#NODE.ID},{#STORAGE.NAME}]) / (last(//proxmox_ve.node.storage.total[{#NODE.ID},{#STORAGE.NAME}]) + (last(//proxmox_ve.node.storage.total[{#NODE.ID},{#STORAGE.NAME}]) = 0)) * 100'
               description: 'Retrieves the utilization percentage of the storage device "{#STORAGE.NAME}" on the node {#NODE.NAME}.'
               preprocessing:
                 - type: DISCARD_UNCHANGED_HEARTBEAT
@@ -3540,6 +3576,8 @@ zabbix_export:
           lld_macro_paths:
             - lld_macro: '{#STORAGE.NAME}'
               path: $.storage
+            - lld_macro: '{#STORAGE.ENABLED}'
+              path: $.enabled
             - lld_macro: '{#STORAGE.SHARED}'
               path: $.shared
           preprocessing:
@@ -4327,6 +4365,38 @@ zabbix_export:
                 value: '{$PVE.FILTER.STORAGE.NAME.NOTMATCH}'
                 operator: NOT_MATCHES_REGEX
           item_prototypes:
+            - uuid: b5a68465854241ccbd696698ff3dc1fc
+              name: 'Storage [{#STORAGE.NAME}]: Status'
+              type: DEPENDENT
+              key: 'proxmox_ve.storage.status[{#STORAGE.NAME}]'
+              value_type: CHAR
+              description: 'Retrieves the status of shared storage {#STORAGE.NAME} ("available" or "unknown").'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data.storage.list[?(@.storage == "{#STORAGE.NAME}")].status.first()'
+                  error_handler: CUSTOM_VALUE
+                  error_handler_params: unknown
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1h
+              master_item:
+                key: proxmox_ve.cluster.resources.get
+              tags:
+                - tag: component
+                  value: storage
+                - tag: storage
+                  value: '{#STORAGE.NAME}'
+              trigger_prototypes:
+                - uuid: a3afeb0a39b54f0f97a89ef021c1a7b6
+                  expression: 'last(/Proxmox VE by HTTP/proxmox_ve.storage.status[{#STORAGE.NAME}])<>"available"'
+                  name: 'Proxmox VE: Storage [{#STORAGE.NAME}]: Not available'
+                  opdata: 'Status: {ITEM.LASTVALUE1}'
+                  priority: AVERAGE
+                  description: 'Proxmox VE reports the shared storage {#STORAGE.NAME} as not available (status "unknown"): e.g. backup server or network storage unreachable. Size items get no data while it is unavailable.'
+                  tags:
+                    - tag: scope
+                      value: availability
             - uuid: 84569e8824394c5fa7a842840bef688e
               name: 'Storage [{#STORAGE.NAME}]: Content'
               type: DEPENDENT
@@ -4421,7 +4491,7 @@ zabbix_export:
               key: 'proxmox_ve.storage.utilization[{#STORAGE.NAME}]'
               value_type: FLOAT
               units: '%'
-              params: 'last(//proxmox_ve.storage.used[{#STORAGE.NAME}]) / last(//proxmox_ve.storage.total[{#STORAGE.NAME}]) * 100'
+              params: 'last(//proxmox_ve.storage.used[{#STORAGE.NAME}]) / (last(//proxmox_ve.storage.total[{#STORAGE.NAME}]) + (last(//proxmox_ve.storage.total[{#STORAGE.NAME}]) = 0)) * 100'
               description: 'Retrieves the storage utilization percentage for shared storage {#STORAGE.NAME}.'
               preprocessing:
                 - type: DISCARD_UNCHANGED_HEARTBEAT

@@ -158,12 +158,19 @@ Please provide the necessary access levels for both the User and the Token:
 
 |Name|Description|Type|Key and additional info|
 |----|-----------|----|-----------------------|
+|Storage [{#STORAGE.NAME}]: Status|<p>Retrieves the status of shared storage {#STORAGE.NAME} ("available" or "unknown").</p>|Dependent item|proxmox_ve.storage.status[{#STORAGE.NAME}]|
 |Storage [{#STORAGE.NAME}]: Type|<p>Retrieves the type of shared storage {#STORAGE.NAME}.</p>|Dependent item|proxmox_ve.storage.type[{#STORAGE.NAME}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `The text is too long. Please see the template.`</p><p>⛔️Custom on fail: Set value to: `unknown`</p></li><li><p>Discard unchanged with heartbeat: `1h`</p></li></ul>|
 |Storage [{#STORAGE.NAME}]: Total|<p>Retrieves the total size of shared storage {#STORAGE.NAME}.</p>|Dependent item|proxmox_ve.storage.total[{#STORAGE.NAME}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `The text is too long. Please see the template.`</p><p>⛔️Custom on fail: Set value to: `0`</p></li><li><p>Discard unchanged with heartbeat: `1h`</p></li></ul>|
 |Storage [{#STORAGE.NAME}]: Used|<p>Retrieves the used size of shared storage {#STORAGE.NAME}.</p>|Dependent item|proxmox_ve.storage.used[{#STORAGE.NAME}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `The text is too long. Please see the template.`</p><p>⛔️Custom on fail: Set value to: `0`</p></li><li><p>Discard unchanged with heartbeat: `1h`</p></li></ul>|
 |Storage [{#STORAGE.NAME}]: Utilization|<p>Retrieves the storage utilization percentage for shared storage {#STORAGE.NAME}.</p>|Calculated|proxmox_ve.storage.utilization[{#STORAGE.NAME}]<p>**Preprocessing**</p><ul><li><p>Discard unchanged with heartbeat: `1h`</p></li></ul>|
 |Storage [{#STORAGE.NAME}]: Content|<p>Retrieves the content type of shared storage {#STORAGE.NAME}.</p>|Dependent item|proxmox_ve.storage.content[{#STORAGE.NAME}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `The text is too long. Please see the template.`</p><p>⛔️Custom on fail: Set value to: `unknown`</p></li><li><p>Discard unchanged with heartbeat: `1h`</p></li></ul>|
 
+
+### Trigger prototypes for Proxmox shared storage discovery
+
+|Name|Description|Expression|Severity|Dependencies and additional info|
+|----|-----------|----------|--------|--------------------------------|
+|Proxmox VE: Storage [{#STORAGE.NAME}]: Not available|<p>Proxmox VE reports the shared storage as not available (status "unknown").</p>|`last(/Proxmox VE by HTTP/proxmox_ve.storage.status[{#STORAGE.NAME}])<>"available"`|Average||
 ### LLD rule Proxmox users discovery
 
 |Name|Description|Type|Key and additional info|
@@ -280,12 +287,13 @@ Please provide the necessary access levels for both the User and the Token:
 
 |Name|Description|Type|Key and additional info|
 |----|-----------|----|-----------------------|
-|Node [{#NODE.NAME}]: Storage discovery|<p>Discovers storage devices on the node {#NODE.NAME}.</p>|HTTP agent|proxmox_ve.node.storage.discovery[{#NODE.ID}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.data`</p><p>⛔️Custom on fail: Set value to: `[]`</p></li><li><p>Discard unchanged with heartbeat: `12h`</p></li></ul>|
+|Node [{#NODE.NAME}]: Storage discovery|<p>Discovers storage devices on the node {#NODE.NAME}. Storages disabled in Proxmox VE are skipped.</p>|HTTP agent|proxmox_ve.node.storage.discovery[{#NODE.ID}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.data`</p><p>⛔️Custom on fail: Set value to: `[]`</p></li><li><p>Discard unchanged with heartbeat: `12h`</p></li></ul>|
 
 ### Item prototypes for Node [{#NODE.NAME}]: Storage discovery
 
 |Name|Description|Type|Key and additional info|
 |----|-----------|----|-----------------------|
+|Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Active|<p>Whether the storage device "{#STORAGE.NAME}" on the node {#NODE.NAME} is active (accessible): 1 - active, 0 - not active.</p>|Dependent item|proxmox_ve.node.storage.active[{#NODE.ID},{#STORAGE.NAME}]|
 |Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Get info|<p>Retrieves information about the storage device "{#STORAGE.NAME}" on the node {#NODE.NAME}.</p>|HTTP agent|proxmox_ve.node.storage[{#NODE.ID},{#STORAGE.NAME}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.data[?(@.storage=="{#STORAGE.NAME}")].first()`</p><p>⛔️Custom on fail: Discard value</p></li></ul>|
 |Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Type|<p>Retrieves the type of the storage device "{#STORAGE.NAME}" on the node {#NODE.NAME}.</p>|Dependent item|proxmox_ve.node.storage.type[{#NODE.ID},{#STORAGE.NAME}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.type`</p><p>⛔️Custom on fail: Discard value</p></li><li><p>Discard unchanged with heartbeat: `12h`</p></li></ul>|
 |Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Content|<p>Retrieves the content type of the storage device "{#STORAGE.NAME}" on the node {#NODE.NAME}.</p>|Dependent item|proxmox_ve.node.storage.content[{#NODE.ID},{#STORAGE.NAME}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.content`</p><p>⛔️Custom on fail: Discard value</p></li><li><p>Discard unchanged with heartbeat: `12h`</p></li></ul>|
@@ -297,6 +305,7 @@ Please provide the necessary access levels for both the User and the Token:
 
 |Name|Description|Expression|Severity|Dependencies and additional info|
 |----|-----------|----------|--------|--------------------------------|
+|Proxmox VE: Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Not active|<p>The storage is enabled but not active on the node: Proxmox VE cannot access it.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.storage.active[{#NODE.ID},{#STORAGE.NAME}])=0`|Average||
 |Proxmox VE: Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Usage high|<p>The storage usage of {#STORAGE.NAME} on the node {#NODE.NAME} is high.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.storage.used[{#NODE.ID},{#STORAGE.NAME}]) / last(/Proxmox VE by HTTP/proxmox_ve.node.storage.total[{#NODE.ID},{#STORAGE.NAME}]) * 100 > {$PVE.TRIGGER.DISK.WARNING:"{#STORAGE.NAME}"}`|Warning||
 |Proxmox VE: Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Usage high|<p>The storage usage of {#STORAGE.NAME} on the node {#NODE.NAME} is high.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.storage.utilization[{#NODE.ID},{#STORAGE.NAME}]) > {$PVE.TRIGGER.DISK.WARNING:"{#STORAGE.NAME}"}`|Warning||
 
