@@ -3427,15 +3427,6 @@ zabbix_export:
               tags:
                 - tag: component
                   value: raw
-          trigger_prototypes:
-            - uuid: 65718347d14743b88ffa60051f688c37
-              expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.storage.used[{#NODE.ID},{#STORAGE.NAME}]) / last(/Proxmox VE by HTTP/proxmox_ve.node.storage.total[{#NODE.ID},{#STORAGE.NAME}]) * 100 > {$PVE.TRIGGER.DISK.WARNING:"{#STORAGE.NAME}"}'
-              name: 'Proxmox VE: Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Usage high'
-              priority: WARNING
-              description: 'The storage usage of {#STORAGE.NAME} on the node {#NODE.NAME} is high.'
-              tags:
-                - tag: scope
-                  value: notice
           graph_prototypes:
             - uuid: cdc304fb2ed84bd68a81ad6ae4c757b2
               name: 'Node [{#NODE.NAME}]: Storage [{#STORAGE.NAME}]: Used'
