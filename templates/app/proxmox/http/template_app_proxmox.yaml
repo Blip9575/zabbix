@@ -1822,6 +1822,18 @@ zabbix_export:
                   tags:
                     - tag: notify
                       value: muted
+            - name: 'Decommissioned guests (PVE tags)'
+              step: '2'
+              filter:
+                conditions:
+                  - macro: '{#LXC.TAGS}'
+                    value: '{$PVE.TAGS.DECOM}'
+                    formulaid: A
+              operations:
+                - operationobject: TRIGGER_PROTOTYPE
+                  operator: REGEXP
+                  value: ': (Not running|Has been restarted)$'
+                  discover: NO_DISCOVER
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -2478,6 +2490,18 @@ zabbix_export:
                   tags:
                     - tag: notify
                       value: muted
+            - name: 'Decommissioned guests (PVE tags)'
+              step: '2'
+              filter:
+                conditions:
+                  - macro: '{#QEMU.TAGS}'
+                    value: '{$PVE.TAGS.DECOM}'
+                    formulaid: A
+              operations:
+                - operationobject: TRIGGER_PROTOTYPE
+                  operator: REGEXP
+                  value: ': (Not running|Has been restarted|Error getting guest agent data)$'
+                  discover: NO_DISCOVER
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -4908,6 +4932,18 @@ zabbix_export:
             description: |
               The proxy settings for the Proxmox VE API.
               Set empty value if you do not want to use a proxy.
+            regex: '.*'
+        - macro: '{$PVE.TAGS.DECOM}'
+          value: '(^|;)decom(;|$)'
+          description: 'Regular expression matched against a guest''s Proxmox VE tags. Matching (decommissioned / stopped by design) guests get no "Not running", "Has been restarted" or "Error getting guest agent data" triggers.'
+          config:
+            type: TEXT
+            priority: '10'
+            section_name: Other
+            label: 'Decommissioned guests: PVE tags'
+            description: |
+              Regular expression matched against a guest's Proxmox VE tags (";"-separated).
+              Matching guests are stopped by design: no "Not running", "Has been restarted" or "Error getting guest agent data" triggers are created.
             regex: '.*'
         - macro: '{$PVE.TAGS.MUTE}'
           value: '(^|;)(dev|decom)(;|$)'
