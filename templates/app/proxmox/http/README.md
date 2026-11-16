@@ -60,6 +60,8 @@ Please provide the necessary access levels for both the User and the Token:
 
 4. Optional: to keep problems of selected guests out of notifications, give them a Proxmox VE tag (by default `dev` or `decom`; see `{$PVE.TAGS.MUTE}`). Their triggers get the tag `notify=muted`; add the condition "Tag `notify` does not equal `muted`" to your actions. The problems stay visible in Zabbix.
 
+5. Optional: guests that are decommissioned or stopped by design get the Proxmox VE tag `decom` (see `{$PVE.TAGS.DECOM}`): no "Not running", "Has been restarted" or "Error getting guest agent data" triggers are created for them. With the default `{$PVE.TAGS.MUTE}` their remaining triggers are muted too.
+
 ### Macros used
 
 |Name|Description|Default|
@@ -71,6 +73,7 @@ Please provide the necessary access levels for both the User and the Token:
 |{$PVE.TOKEN.SECRET}|<p>Secret key.</p>||
 |{$HTTP.TLS.VERIFY}|<p>TLS certificate verification for script items: "none" - disabled, "peer" - verify the certificate chain and expiration, "full" - full verification. Any other value enables full verification. To override the setting for this template only, define the macro with the context "Proxmox VE", e.g. {$HTTP.TLS.VERIFY:"Proxmox VE"}.</p>|`full`|
 |{$PVE.PROXY}|<p>Proxy settings for the Proxmox VE API.</p>||
+|{$PVE.TAGS.DECOM}|<p>Regular expression matched against a guest's Proxmox VE tags. Matching (decommissioned / stopped by design) guests get no "Not running", "Has been restarted" or "Error getting guest agent data" triggers.</p>|`(^\|;)decom(;\|$)`|
 |{$PVE.TAGS.MUTE}|<p>Regular expression matched against a guest's Proxmox VE tags (";"-separated). Triggers of matching LXC containers and QEMU virtual machines get the tag `notify=muted`, so actions can skip them.</p>|`(^\|;)(dev\|decom)(;\|$)`|
 |{$PVE.PARAMS.INTERVAL.CLUSTER}|<p>Interval for cluster data retrieval.</p>|`1m`|
 |{$PVE.PARAMS.INTERVAL.USER}|<p>Interval for user data retrieval.</p>|`1h`|
