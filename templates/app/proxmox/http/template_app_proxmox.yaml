@@ -1696,7 +1696,7 @@ zabbix_export:
                   value: '{#NODE.NAME}'
               trigger_prototypes:
                 - uuid: 12bc18cf9e2e40e5879a4b58efad70a2
-                  expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.lxc.uptime[{#NODE.ID},{#LXC.VMID}]) < {$PVE.TRIGGER.UPTIME:"{#LXC.NAME}"}'
+                  expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.lxc.uptime[{#NODE.ID},{#LXC.VMID}]) < {$PVE.TRIGGER.UPTIME:"{#LXC.NAME}"} and last(/Proxmox VE by HTTP/proxmox_ve.node.lxc.status[{#NODE.ID},{#LXC.VMID}])=2'
                   name: 'Proxmox VE: Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Has been restarted'
                   priority: WARNING
                   description: 'The LXC container {#LXC.NAME} on the node {#NODE.NAME} has been restarted.'
@@ -2403,7 +2403,7 @@ zabbix_export:
                   value: '{#QEMU.NAME}'
               trigger_prototypes:
                 - uuid: 8c9c94cbdd8b491280faff5bc6f10b41
-                  expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.uptime[{#NODE.ID},{#QEMU.VMID}]) < {$PVE.TRIGGER.UPTIME:"{#QEMU.NAME}"}'
+                  expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.uptime[{#NODE.ID},{#QEMU.VMID}]) < {$PVE.TRIGGER.UPTIME:"{#QEMU.NAME}"} and last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.status[{#NODE.ID},{#QEMU.VMID}])=2'
                   name: 'Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Has been restarted'
                   priority: WARNING
                   description: 'The QEMU virtual machine {#QEMU.NAME} on the node {#NODE.NAME} has been restarted.'
