@@ -491,7 +491,7 @@ zabbix_export:
             				Proxmox.output['data']['storage']['total'] += Proxmox.getField(resource, 'maxdisk', 0);
             				Proxmox.output['data']['storage']['utilization'] = Math.round((Proxmox.output['data']['storage']['used'] / Proxmox.output['data']['storage']['total']) * 100);
             
-            			} else if (resource.type === 'lxc') {
+            			} else if (resource.type === 'lxc' && Proxmox.getField(resource, 'template', 0) != 1) {
             
             				Proxmox.output['data']['lxc'].push({
             					'vmid': Proxmox.getField(resource, 'vmid'),
@@ -507,7 +507,7 @@ zabbix_export:
             					Proxmox.output['data']['cluster']['lxc_stopped']++;
             				}
             
-            			} else if (resource.type === 'qemu') {
+            			} else if (resource.type === 'qemu' && Proxmox.getField(resource, 'template', 0) != 1) {
             
             				Proxmox.output['data']['qemu'].push({
             					'vmid': Proxmox.getField(resource, 'vmid'),
