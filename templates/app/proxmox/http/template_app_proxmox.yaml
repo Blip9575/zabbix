@@ -1860,12 +1860,13 @@ zabbix_export:
                   value: '{#QEMU.NAME}'
               trigger_prototypes:
                 - uuid: 757fba13cb1f43af9c8033c8462322e4
-                  expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.agent.version[{#NODE.ID},{#QEMU.VMID}])="Unknown"'
+                  expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.agent.version[{#NODE.ID},{#QEMU.VMID}])="Unknown" and last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.status[{#NODE.ID},{#QEMU.VMID}])=2'
                   name: 'Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Error getting guest agent data'
                   priority: WARNING
                   description: |
                     Error retrieving the QEMU guest agent data for the virtual machine {#QEMU.NAME} on the node {#NODE.NAME}.
                     The guest agent may not be running.
+                    Evaluated only while the virtual machine is running (a stopped VM cannot answer; "Not running" covers it).
                   dependencies:
                     - name: 'Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Agent is not enabled'
                       expression: 'last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.agent[{#NODE.ID},{#QEMU.VMID}]) <> 1'
