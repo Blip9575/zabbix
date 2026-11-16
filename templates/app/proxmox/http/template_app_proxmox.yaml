@@ -321,7 +321,7 @@ zabbix_export:
           type: SCRIPT
           key: proxmox_ve.cluster.resources.get
           delay: '{$PVE.PARAMS.INTERVAL.CLUSTER}'
-          history: '0'
+          history: 1h
           value_type: TEXT
           params: |
             const CTlsConfig = function (raw_value) {
