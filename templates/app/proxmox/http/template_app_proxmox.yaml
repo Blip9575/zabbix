@@ -1161,6 +1161,102 @@ zabbix_export:
                 value: '{$PVE.FILTER.QEMULXC.STATUS.MATCH}'
           description: 'Discovers LXC containers on the node {#NODE.NAME}.'
           item_prototypes:
+            - uuid: 32de877658e6494c94336098eac198b4
+              name: 'Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Get snapshots'
+              type: HTTP_AGENT
+              key: 'proxmox_ve.node.lxc.snapshots[{#NODE.ID},{#LXC.VMID}]'
+              delay: '{$PVE.PARAMS.INTERVAL.SNAPSHOT}'
+              history: '0'
+              value_type: TEXT
+              description: 'Retrieves the snapshots of the LXC container {#LXC.NAME} on the node {#NODE.NAME} and summarizes them: number and age of the oldest one, without "current" and names matching {$PVE.SNAPSHOT.NAME.NOTMATCH}.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var exclude = '{$PVE.SNAPSHOT.NAME.NOTMATCH}', re = null, now = Math.floor(Date.now() / 1000), out = {count: 0, oldest_age: 0};
+                      try { re = new RegExp(exclude); } catch (e) { re = null; }
+                      (JSON.parse(value).data || []).forEach(function (snap) {
+                      	if (snap.name === 'current' || (re !== null && exclude !== 'CHANGE_ME_IF_NEEDED' && re.test(snap.name))) {
+                      		return;
+                      	}
+                      	out.count++;
+                      	if (typeof snap.snaptime === 'number') {
+                      		out.oldest_age = Math.max(out.oldest_age, now - snap.snaptime);
+                      	}
+                      });
+                      return JSON.stringify(out);
+              timeout: '10'
+              url: 'https://{$PVE.URL.HOST}:{$PVE.URL.PORT}/api2/json/nodes/{#NODE.NAME}/lxc/{#LXC.VMID}/snapshot'
+              http_proxy: '{$PVE.PROXY}'
+              headers:
+                - name: Authorization
+                  value: 'PVEAPIToken={$PVE.TOKEN.ID}={$PVE.TOKEN.SECRET}'
+              tags:
+                - tag: component
+                  value: raw
+            - uuid: 428adf8f5db0461fa94ffc485c0bf74e
+              name: 'Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Snapshot count'
+              type: DEPENDENT
+              key: 'proxmox_ve.node.lxc.snapshot.count[{#NODE.ID},{#LXC.VMID}]'
+              description: 'Number of snapshots of the LXC container {#LXC.NAME} (without "current" and names matching {$PVE.SNAPSHOT.NAME.NOTMATCH}).'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.count
+              master_item:
+                key: 'proxmox_ve.node.lxc.snapshots[{#NODE.ID},{#LXC.VMID}]'
+              tags:
+                - tag: component
+                  value: lxc
+                - tag: component
+                  value: snapshot
+                - tag: node
+                  value: '{#NODE.NAME}'
+                - tag: lxc
+                  value: '{#LXC.NAME}'
+              trigger_prototypes:
+                - uuid: 72af78311b944db594d0fa5088237625
+                  expression: 'min(/Proxmox VE by HTTP/proxmox_ve.node.lxc.snapshot.count[{#NODE.ID},{#LXC.VMID}],1h) > {$PVE.SNAPSHOT.COUNT.MAX.WARN:"{#LXC.NAME}"}'
+                  name: 'Proxmox VE: Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Too many snapshots'
+                  event_name: 'Proxmox VE: Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Too many snapshots (more than {$PVE.SNAPSHOT.COUNT.MAX.WARN:"{#LXC.NAME}"})'
+                  opdata: 'Snapshots: {ITEM.LASTVALUE1}'
+                  priority: WARNING
+                  description: 'The LXC container {#LXC.NAME} on the node {#NODE.NAME} has had more than {$PVE.SNAPSHOT.COUNT.MAX.WARN:"{#LXC.NAME}"} snapshots for at least 1h. Snapshots hold back freed space and slow down storage.'
+                  tags:
+                    - tag: scope
+                      value: capacity
+            - uuid: 576a93f2b71949eb99b215b99aba2bb3
+              name: 'Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Oldest snapshot age'
+              type: DEPENDENT
+              key: 'proxmox_ve.node.lxc.snapshot.age[{#NODE.ID},{#LXC.VMID}]'
+              units: s
+              description: 'Age of the oldest snapshot of the LXC container {#LXC.NAME} (0 without snapshots).'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.oldest_age
+              master_item:
+                key: 'proxmox_ve.node.lxc.snapshots[{#NODE.ID},{#LXC.VMID}]'
+              tags:
+                - tag: component
+                  value: lxc
+                - tag: component
+                  value: snapshot
+                - tag: node
+                  value: '{#NODE.NAME}'
+                - tag: lxc
+                  value: '{#LXC.NAME}'
+              trigger_prototypes:
+                - uuid: ba8109ecfc4f487983507f29d2b77f47
+                  expression: 'min(/Proxmox VE by HTTP/proxmox_ve.node.lxc.snapshot.age[{#NODE.ID},{#LXC.VMID}],1h) > {$PVE.SNAPSHOT.AGE.MAX.WARN:"{#LXC.NAME}"}'
+                  name: 'Proxmox VE: Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Old snapshot'
+                  event_name: 'Proxmox VE: Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Snapshot older than {$PVE.SNAPSHOT.AGE.MAX.WARN:"{#LXC.NAME}"}'
+                  opdata: 'Oldest: {ITEM.LASTVALUE1}'
+                  priority: WARNING
+                  description: 'The oldest snapshot of the LXC container {#LXC.NAME} on the node {#NODE.NAME} is older than {$PVE.SNAPSHOT.AGE.MAX.WARN:"{#LXC.NAME}"}: probably forgotten after a change.'
+                  tags:
+                    - tag: scope
+                      value: capacity
             - uuid: 2ab60ef05b5a4372aca2dc195afbd6de
               name: 'Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: CPU count'
               type: DEPENDENT
@@ -1826,6 +1922,102 @@ zabbix_export:
                 value: '{$PVE.FILTER.QEMULXC.STATUS.MATCH}'
           description: 'Discovers QEMU virtual machines on the node {#NODE.NAME}.'
           item_prototypes:
+            - uuid: 89c948a46ba94fee900955ffd5185cea
+              name: 'Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Get snapshots'
+              type: HTTP_AGENT
+              key: 'proxmox_ve.node.qemu.snapshots[{#NODE.ID},{#QEMU.VMID}]'
+              delay: '{$PVE.PARAMS.INTERVAL.SNAPSHOT}'
+              history: '0'
+              value_type: TEXT
+              description: 'Retrieves the snapshots of the QEMU virtual machine {#QEMU.NAME} on the node {#NODE.NAME} and summarizes them: number and age of the oldest one, without "current" and names matching {$PVE.SNAPSHOT.NAME.NOTMATCH}.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var exclude = '{$PVE.SNAPSHOT.NAME.NOTMATCH}', re = null, now = Math.floor(Date.now() / 1000), out = {count: 0, oldest_age: 0};
+                      try { re = new RegExp(exclude); } catch (e) { re = null; }
+                      (JSON.parse(value).data || []).forEach(function (snap) {
+                      	if (snap.name === 'current' || (re !== null && exclude !== 'CHANGE_ME_IF_NEEDED' && re.test(snap.name))) {
+                      		return;
+                      	}
+                      	out.count++;
+                      	if (typeof snap.snaptime === 'number') {
+                      		out.oldest_age = Math.max(out.oldest_age, now - snap.snaptime);
+                      	}
+                      });
+                      return JSON.stringify(out);
+              timeout: '10'
+              url: 'https://{$PVE.URL.HOST}:{$PVE.URL.PORT}/api2/json/nodes/{#NODE.NAME}/qemu/{#QEMU.VMID}/snapshot'
+              http_proxy: '{$PVE.PROXY}'
+              headers:
+                - name: Authorization
+                  value: 'PVEAPIToken={$PVE.TOKEN.ID}={$PVE.TOKEN.SECRET}'
+              tags:
+                - tag: component
+                  value: raw
+            - uuid: 8cd4565b1b954100978ebd6b4afb5dc9
+              name: 'Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Snapshot count'
+              type: DEPENDENT
+              key: 'proxmox_ve.node.qemu.snapshot.count[{#NODE.ID},{#QEMU.VMID}]'
+              description: 'Number of snapshots of the QEMU virtual machine {#QEMU.NAME} (without "current" and names matching {$PVE.SNAPSHOT.NAME.NOTMATCH}).'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.count
+              master_item:
+                key: 'proxmox_ve.node.qemu.snapshots[{#NODE.ID},{#QEMU.VMID}]'
+              tags:
+                - tag: component
+                  value: qemu
+                - tag: component
+                  value: snapshot
+                - tag: node
+                  value: '{#NODE.NAME}'
+                - tag: qemu
+                  value: '{#QEMU.NAME}'
+              trigger_prototypes:
+                - uuid: 1fa9ae07b54d48ffae1ffe81ec76d3df
+                  expression: 'min(/Proxmox VE by HTTP/proxmox_ve.node.qemu.snapshot.count[{#NODE.ID},{#QEMU.VMID}],1h) > {$PVE.SNAPSHOT.COUNT.MAX.WARN:"{#QEMU.NAME}"}'
+                  name: 'Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Too many snapshots'
+                  event_name: 'Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Too many snapshots (more than {$PVE.SNAPSHOT.COUNT.MAX.WARN:"{#QEMU.NAME}"})'
+                  opdata: 'Snapshots: {ITEM.LASTVALUE1}'
+                  priority: WARNING
+                  description: 'The QEMU virtual machine {#QEMU.NAME} on the node {#NODE.NAME} has had more than {$PVE.SNAPSHOT.COUNT.MAX.WARN:"{#QEMU.NAME}"} snapshots for at least 1h. Snapshots hold back freed space and slow down storage.'
+                  tags:
+                    - tag: scope
+                      value: capacity
+            - uuid: 54d98847546c4177b4793e5e41245c6e
+              name: 'Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Oldest snapshot age'
+              type: DEPENDENT
+              key: 'proxmox_ve.node.qemu.snapshot.age[{#NODE.ID},{#QEMU.VMID}]'
+              units: s
+              description: 'Age of the oldest snapshot of the QEMU virtual machine {#QEMU.NAME} (0 without snapshots).'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.oldest_age
+              master_item:
+                key: 'proxmox_ve.node.qemu.snapshots[{#NODE.ID},{#QEMU.VMID}]'
+              tags:
+                - tag: component
+                  value: qemu
+                - tag: component
+                  value: snapshot
+                - tag: node
+                  value: '{#NODE.NAME}'
+                - tag: qemu
+                  value: '{#QEMU.NAME}'
+              trigger_prototypes:
+                - uuid: 69320cb5e45a4f35a7ba5bb1c767f458
+                  expression: 'min(/Proxmox VE by HTTP/proxmox_ve.node.qemu.snapshot.age[{#NODE.ID},{#QEMU.VMID}],1h) > {$PVE.SNAPSHOT.AGE.MAX.WARN:"{#QEMU.NAME}"}'
+                  name: 'Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Old snapshot'
+                  event_name: 'Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Snapshot older than {$PVE.SNAPSHOT.AGE.MAX.WARN:"{#QEMU.NAME}"}'
+                  opdata: 'Oldest: {ITEM.LASTVALUE1}'
+                  priority: WARNING
+                  description: 'The oldest snapshot of the QEMU virtual machine {#QEMU.NAME} on the node {#NODE.NAME} is older than {$PVE.SNAPSHOT.AGE.MAX.WARN:"{#QEMU.NAME}"}: probably forgotten after a change.'
+                  tags:
+                    - tag: scope
+                      value: capacity
             - uuid: ff60e7840528434996b2e28b80ea151d
               name: 'Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Guest agent version'
               type: HTTP_AGENT
@@ -4861,6 +5053,46 @@ zabbix_export:
             description: |
               The interval for retrieving user data from the Proxmox VE API.
               Use for LLD and item updates.
+            regex: '.*'
+        - macro: '{$PVE.PARAMS.INTERVAL.SNAPSHOT}'
+          value: '1h'
+          description: 'Interval for snapshot data retrieval (per LXC container and QEMU virtual machine).'
+          config:
+            type: TEXT
+            priority: '8'
+            section_name: Other
+            label: 'Snapshot data update interval'
+            description: 'Interval for snapshot data retrieval (per LXC container and QEMU virtual machine).'
+            regex: '.*'
+        - macro: '{$PVE.SNAPSHOT.AGE.MAX.WARN}'
+          value: '30d'
+          description: 'Maximum age of a guest''s oldest snapshot. This macro supports context (guest name).'
+          config:
+            type: TEXT
+            priority: '19'
+            section_name: Other
+            label: 'Maximum snapshot age'
+            description: 'Maximum age of a guest''s oldest snapshot. This macro supports context (guest name).'
+            regex: '^[0-9]+[smhdw]?$'
+        - macro: '{$PVE.SNAPSHOT.COUNT.MAX.WARN}'
+          value: '10'
+          description: 'Maximum number of snapshots per guest. This macro supports context (guest name).'
+          config:
+            type: TEXT
+            priority: '19'
+            section_name: Other
+            label: 'Maximum number of snapshots'
+            description: 'Maximum number of snapshots per guest. This macro supports context (guest name).'
+            regex: '^[0-9]+$'
+        - macro: '{$PVE.SNAPSHOT.NAME.NOTMATCH}'
+          value: 'CHANGE_ME_IF_NEEDED'
+          description: 'Snapshots whose name matches this regular expression are not counted (e.g. automatic snapshots: ^autoDaily).'
+          config:
+            type: TEXT
+            priority: '19'
+            section_name: Other
+            label: 'Snapshot names to ignore'
+            description: 'Snapshots whose name matches this regular expression are not counted (e.g. automatic snapshots: ^autoDaily).'
             regex: '.*'
         - macro: '{$PVE.PROXY}'
           description: 'Proxy settings for the Proxmox VE API.'

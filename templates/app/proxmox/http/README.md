@@ -67,6 +67,10 @@ Please provide the necessary access levels for both the User and the Token:
 |{$PVE.TOKEN.ID}|<p>API tokens allow stateless access to most parts of the REST API by another system, software or API client.</p>|`USER@REALM!TOKENID`|
 |{$PVE.TOKEN.SECRET}|<p>Secret key.</p>||
 |{$HTTP.TLS.VERIFY}|<p>TLS certificate verification for script items: "none" - disabled, "peer" - verify the certificate chain and expiration, "full" - full verification. Any other value enables full verification. To override the setting for this template only, define the macro with the context "Proxmox VE", e.g. {$HTTP.TLS.VERIFY:"Proxmox VE"}.</p>|`full`|
+|{$PVE.PARAMS.INTERVAL.SNAPSHOT}|<p>Interval for snapshot data retrieval (per LXC container and QEMU virtual machine).</p>|`1h`|
+|{$PVE.SNAPSHOT.AGE.MAX.WARN}|<p>Maximum age of a guest's oldest snapshot. This macro supports context (guest name).</p>|`30d`|
+|{$PVE.SNAPSHOT.COUNT.MAX.WARN}|<p>Maximum number of snapshots per guest. This macro supports context (guest name).</p>|`10`|
+|{$PVE.SNAPSHOT.NAME.NOTMATCH}|<p>Snapshots whose name matches this regular expression are not counted (e.g. automatic snapshots: ^autoDaily).</p>|`CHANGE_ME_IF_NEEDED`|
 |{$PVE.PROXY}|<p>Proxy settings for the Proxmox VE API.</p>||
 |{$PVE.PARAMS.INTERVAL.CLUSTER}|<p>Interval for cluster data retrieval.</p>|`1m`|
 |{$PVE.PARAMS.INTERVAL.USER}|<p>Interval for user data retrieval.</p>|`1h`|
@@ -302,6 +306,9 @@ Please provide the necessary access levels for both the User and the Token:
 
 |Name|Description|Type|Key and additional info|
 |----|-----------|----|-----------------------|
+|Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Get snapshots|<p>Retrieves the snapshots of the guest and summarizes them (number, age of the oldest).</p>|HTTP agent|proxmox_ve.node.lxc.snapshots[{#NODE.ID},{#LXC.VMID}]|
+|Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Snapshot count|<p>Number of snapshots (without "current" and ignored names).</p>|Dependent item|proxmox_ve.node.lxc.snapshot.count[{#NODE.ID},{#LXC.VMID}]|
+|Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Oldest snapshot age|<p>Age of the oldest snapshot (0 without snapshots).</p>|Dependent item|proxmox_ve.node.lxc.snapshot.age[{#NODE.ID},{#LXC.VMID}]|
 |Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Get info|<p>Retrieves information about the LXC container {#LXC.NAME} on the node {#NODE.NAME}.</p>|HTTP agent|proxmox_ve.node.lxc[{#NODE.ID},{#LXC.VMID}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.data`</p><p>⛔️Custom on fail: Set value to: `{}`</p></li></ul>|
 |Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Worked node|<p>Retrieves the node where the LXC container {#LXC.NAME} is running.</p>|Dependent item|proxmox_ve.node.lxc.node[{#NODE.ID},{#LXC.VMID}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.data.lxc[?(@.vmid == "{#LXC.VMID}")].node.first()`</p><p>⛔️Custom on fail: Discard value</p></li><li><p>Discard unchanged with heartbeat: `12h`</p></li></ul>|
 |Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Status|<p>Retrieves the status of the LXC container {#LXC.NAME} on the node {#NODE.NAME}.</p>|Dependent item|proxmox_ve.node.lxc.status[{#NODE.ID},{#LXC.VMID}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.status`</p><p>⛔️Custom on fail: Set value to: `unknown`</p></li><li><p>Discard unchanged with heartbeat: `12h`</p></li><li><p>JavaScript: `The text is too long. Please see the template.`</p></li></ul>|
@@ -325,6 +332,8 @@ Please provide the necessary access levels for both the User and the Token:
 
 |Name|Description|Expression|Severity|Dependencies and additional info|
 |----|-----------|----------|--------|--------------------------------|
+|Proxmox VE: Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Too many snapshots|<p>More than `{$PVE.SNAPSHOT.COUNT.MAX.WARN}` snapshots for at least 1h.</p>|`min(/Proxmox VE by HTTP/proxmox_ve.node.lxc.snapshot.count[{#NODE.ID},{#LXC.VMID}],1h) > {$PVE.SNAPSHOT.COUNT.MAX.WARN:"{#LXC.NAME}"}`|Warning||
+|Proxmox VE: Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Old snapshot|<p>The oldest snapshot is older than `{$PVE.SNAPSHOT.AGE.MAX.WARN}`.</p>|`min(/Proxmox VE by HTTP/proxmox_ve.node.lxc.snapshot.age[{#NODE.ID},{#LXC.VMID}],1h) > {$PVE.SNAPSHOT.AGE.MAX.WARN:"{#LXC.NAME}"}`|Warning||
 |Proxmox VE: Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Changed worked node|<p>The LXC container {#LXC.NAME} migrated to another node.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.lxc.node[{#NODE.ID},{#LXC.VMID}], #1) <> last(/Proxmox VE by HTTP/proxmox_ve.node.lxc.node[{#NODE.ID},{#LXC.VMID}], #2)`|Info|**Manual close**: Yes|
 |Proxmox VE: Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: Not running|<p>The LXC container {#LXC.NAME} on the node {#NODE.NAME} is not running.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.lxc.status[{#NODE.ID},{#LXC.VMID}]) <> 2`|Warning|**Manual close**: Yes|
 |Proxmox VE: Node [{#NODE.NAME}]: LXC [{#LXC.NAME}]: CPU utilization high|<p>The CPU utilization of the LXC container {#LXC.NAME} on the node {#NODE.NAME} is high.</p>|`avg(/Proxmox VE by HTTP/proxmox_ve.node.lxc.cpu[{#NODE.ID},{#LXC.VMID}], 5m) > {$PVE.TRIGGER.CPU.WARNING:"{#LXC.NAME}"}`|Warning||
@@ -343,6 +352,9 @@ Please provide the necessary access levels for both the User and the Token:
 
 |Name|Description|Type|Key and additional info|
 |----|-----------|----|-----------------------|
+|Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Get snapshots|<p>Retrieves the snapshots of the guest and summarizes them (number, age of the oldest).</p>|HTTP agent|proxmox_ve.node.qemu.snapshots[{#NODE.ID},{#QEMU.VMID}]|
+|Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Snapshot count|<p>Number of snapshots (without "current" and ignored names).</p>|Dependent item|proxmox_ve.node.qemu.snapshot.count[{#NODE.ID},{#QEMU.VMID}]|
+|Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Oldest snapshot age|<p>Age of the oldest snapshot (0 without snapshots).</p>|Dependent item|proxmox_ve.node.qemu.snapshot.age[{#NODE.ID},{#QEMU.VMID}]|
 |Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Get info|<p>Retrieves information about the QEMU virtual machine {#QEMU.NAME} on the node {#NODE.NAME}.</p>|HTTP agent|proxmox_ve.node.qemu[{#NODE.ID},{#QEMU.VMID}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.data`</p><p>⛔️Custom on fail: Set value to: `{}`</p></li></ul>|
 |Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Worked node|<p>Retrieves the node where the QEMU virtual machine {#QEMU.NAME} is running.</p>|Dependent item|proxmox_ve.node.qemu.node[{#NODE.ID},{#QEMU.VMID}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.data.qemu[?(@.vmid == "{#QEMU.VMID}")].node.first()`</p><p>⛔️Custom on fail: Discard value</p></li><li><p>Discard unchanged with heartbeat: `12h`</p></li></ul>|
 |Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Guest agent|<p>Retrieves the QEMU guest agent status for the virtual machine {#QEMU.NAME} on the node {#NODE.NAME}.</p>|Dependent item|proxmox_ve.node.qemu.agent[{#NODE.ID},{#QEMU.VMID}]<p>**Preprocessing**</p><ul><li><p>JSON Path: `$.agent`</p><p>⛔️Custom on fail: Set value to: `3`</p></li><li><p>Discard unchanged with heartbeat: `12h`</p></li></ul>|
@@ -365,6 +377,8 @@ Please provide the necessary access levels for both the User and the Token:
 
 |Name|Description|Expression|Severity|Dependencies and additional info|
 |----|-----------|----------|--------|--------------------------------|
+|Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Too many snapshots|<p>More than `{$PVE.SNAPSHOT.COUNT.MAX.WARN}` snapshots for at least 1h.</p>|`min(/Proxmox VE by HTTP/proxmox_ve.node.qemu.snapshot.count[{#NODE.ID},{#QEMU.VMID}],1h) > {$PVE.SNAPSHOT.COUNT.MAX.WARN:"{#QEMU.NAME}"}`|Warning||
+|Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Old snapshot|<p>The oldest snapshot is older than `{$PVE.SNAPSHOT.AGE.MAX.WARN}`.</p>|`min(/Proxmox VE by HTTP/proxmox_ve.node.qemu.snapshot.age[{#NODE.ID},{#QEMU.VMID}],1h) > {$PVE.SNAPSHOT.AGE.MAX.WARN:"{#QEMU.NAME}"}`|Warning||
 |Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Changed worked node|<p>The QEMU virtual machine {#QEMU.NAME} migrated to another node.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.node[{#NODE.ID},{#QEMU.VMID}], #1) <> last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.node[{#NODE.ID},{#QEMU.VMID}], #2)`|Info|**Manual close**: Yes|
 |Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Agent is not enabled|<p>The QEMU guest agent for the virtual machine {#QEMU.NAME} on the node {#NODE.NAME} is not enabled.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.agent[{#NODE.ID},{#QEMU.VMID}]) <> 1`|Info||
 |Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Error getting guest agent data|<p>Error retrieving the QEMU guest agent data for the virtual machine {#QEMU.NAME} on the node {#NODE.NAME}.<br>The guest agent may not be running.</p>|`last(/Proxmox VE by HTTP/proxmox_ve.node.qemu.agent.version[{#NODE.ID},{#QEMU.VMID}])="Unknown"`|Warning|**Depends on**:<br><ul><li>Proxmox VE: Node [{#NODE.NAME}]: QEMU [{#QEMU.NAME}]: Agent is not enabled</li></ul>|
