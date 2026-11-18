@@ -156,7 +156,7 @@ zabbix_export:
           preprocessing:
             - type: CHECK_NOT_SUPPORTED
               parameters:
-                - '1'
+                - '0'
                 - 'No Such (Object|Instance)'
               error_handler: CUSTOM_VALUE
           tags:
@@ -173,7 +173,7 @@ zabbix_export:
           preprocessing:
             - type: CHECK_NOT_SUPPORTED
               parameters:
-                - '1'
+                - '0'
                 - 'No Such (Object|Instance)'
               error_handler: CUSTOM_VALUE
           tags:
@@ -190,7 +190,7 @@ zabbix_export:
           preprocessing:
             - type: CHECK_NOT_SUPPORTED
               parameters:
-                - '1'
+                - '0'
                 - 'No Such (Object|Instance)'
               error_handler: CUSTOM_VALUE
           tags:
@@ -2714,7 +2714,7 @@ zabbix_export:
           preprocessing:
             - type: CHECK_NOT_SUPPORTED
               parameters:
-                - '1'
+                - '0'
                 - 'No Such (Object|Instance)'
               error_handler: CUSTOM_VALUE
           tags:
@@ -2731,7 +2731,7 @@ zabbix_export:
           preprocessing:
             - type: CHECK_NOT_SUPPORTED
               parameters:
-                - '1'
+                - '0'
                 - 'No Such (Object|Instance)'
               error_handler: CUSTOM_VALUE
           tags:
@@ -2748,7 +2748,7 @@ zabbix_export:
           preprocessing:
             - type: CHECK_NOT_SUPPORTED
               parameters:
-                - '1'
+                - '0'
                 - 'No Such (Object|Instance)'
               error_handler: CUSTOM_VALUE
           tags:
@@ -3921,7 +3921,7 @@ zabbix_export:
           preprocessing:
             - type: CHECK_NOT_SUPPORTED
               parameters:
-                - '1'
+                - '0'
                 - 'No Such (Object|Instance)'
               error_handler: CUSTOM_VALUE
           tags:
@@ -3938,7 +3938,7 @@ zabbix_export:
           preprocessing:
             - type: CHECK_NOT_SUPPORTED
               parameters:
-                - '1'
+                - '0'
                 - 'No Such (Object|Instance)'
               error_handler: CUSTOM_VALUE
           tags:
@@ -3955,7 +3955,7 @@ zabbix_export:
           preprocessing:
             - type: CHECK_NOT_SUPPORTED
               parameters:
-                - '1'
+                - '0'
                 - 'No Such (Object|Instance)'
               error_handler: CUSTOM_VALUE
           tags:
