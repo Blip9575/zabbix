@@ -1075,6 +1075,7 @@ zabbix_export:
           trigger_prototypes:
             - uuid: 3783d41e790f4d1e9ebb7340d82edc1f
               expression: |
+                {$IFSPEEDCONTROL:"{#IFNAME}"}=1 and
                 change(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])<0 and last(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0
                 and (
                 last(/Cisco IOS by SNMP/net.if.type[ifType.{#SNMPINDEX}])=6 or
@@ -1089,11 +1090,12 @@ zabbix_export:
               recovery_mode: RECOVERY_EXPRESSION
               recovery_expression: |
                 (change(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0 and last(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}],#2)>0) or
-                (last(/Cisco IOS by SNMP/net.if.status[ifOperStatus.{#SNMPINDEX}])=2)
+                (last(/Cisco IOS by SNMP/net.if.status[ifOperStatus.{#SNMPINDEX}])=2) or
+                {$IFSPEEDCONTROL:"{#IFNAME}"}=0
               name: 'Cisco IOS: Interface {#IFNAME}({#IFALIAS}): Ethernet has changed to lower speed than it was before'
               opdata: 'Current reported speed: {ITEM.LASTVALUE1}'
               priority: INFO
-              description: 'This Ethernet connection has transitioned down from its known maximum speed. This might be a sign of autonegotiation issues. Acknowledge to close the problem manually.'
+              description: 'This Ethernet connection has transitioned down from its known maximum speed. This might be a sign of autonegotiation issues. Acknowledge to close the problem manually. Set the context macro {$IFSPEEDCONTROL:"<interface>"} to "0" to switch this trigger off for an interface (or {$IFSPEEDCONTROL} for all).'
               manual_close: 'YES'
               dependencies:
                 - name: 'Cisco IOS: Interface {#IFNAME}({#IFALIAS}): Link down'
@@ -1609,6 +1611,17 @@ zabbix_export:
             priority: '23'
             label: 'Interfaces control'
             description: 'Fire a trigger when the interface operational status changes to "Link down".'
+            options:
+              - checked: '1'
+                unchecked: '0'
+        - macro: '{$IFSPEEDCONTROL}'
+          value: '1'
+          description: 'The "Ethernet has changed to lower speed" trigger fires only for interfaces where the context macro equals "1".'
+          config:
+            type: CHECKBOX
+            priority: '24'
+            label: 'Interfaces speed control'
+            description: 'Fire a trigger when the interface changes to a lower speed than it was before.'
             options:
               - checked: '1'
                 unchecked: '0'
@@ -4679,6 +4692,7 @@ zabbix_export:
           trigger_prototypes:
             - uuid: 60809b6c94d74e34b5f29525d77c75b5
               expression: |
+                {$IFSPEEDCONTROL:"{#IFNAME}"}=1 and
                 change(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])<0 and last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0
                 and (
                 last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.type[ifType.{#SNMPINDEX}])=6 or
@@ -4693,11 +4707,12 @@ zabbix_export:
               recovery_mode: RECOVERY_EXPRESSION
               recovery_expression: |
                 (change(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0 and last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}],#2)>0) or
-                (last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.status[ifOperStatus.{#SNMPINDEX}])=2)
+                (last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.status[ifOperStatus.{#SNMPINDEX}])=2) or
+                {$IFSPEEDCONTROL:"{#IFNAME}"}=0
               name: 'Cisco IOS: Interface {#IFNAME}({#IFALIAS}): Ethernet has changed to lower speed than it was before'
               opdata: 'Current reported speed: {ITEM.LASTVALUE1}'
               priority: INFO
-              description: 'This Ethernet connection has transitioned down from its known maximum speed. This might be a sign of autonegotiation issues. Acknowledge to close the problem manually.'
+              description: 'This Ethernet connection has transitioned down from its known maximum speed. This might be a sign of autonegotiation issues. Acknowledge to close the problem manually. Set the context macro {$IFSPEEDCONTROL:"<interface>"} to "0" to switch this trigger off for an interface (or {$IFSPEEDCONTROL} for all).'
               manual_close: 'YES'
               dependencies:
                 - name: 'Cisco IOS: Interface {#IFNAME}({#IFALIAS}): Link down'
@@ -5126,6 +5141,17 @@ zabbix_export:
             priority: '23'
             label: 'Interfaces control'
             description: 'Fire a trigger when the interface operational status changes to "Link down".'
+            options:
+              - checked: '1'
+                unchecked: '0'
+        - macro: '{$IFSPEEDCONTROL}'
+          value: '1'
+          description: 'The "Ethernet has changed to lower speed" trigger fires only for interfaces where the context macro equals "1".'
+          config:
+            type: CHECKBOX
+            priority: '24'
+            label: 'Interfaces speed control'
+            description: 'Fire a trigger when the interface changes to a lower speed than it was before.'
             options:
               - checked: '1'
                 unchecked: '0'
