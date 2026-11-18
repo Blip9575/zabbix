@@ -241,35 +241,93 @@ zabbix_export:
           tags:
             - tag: component
               value: system
+        - uuid: 8b617759e14a4bfdbe7a42ae71df84f9
+          name: 'Cisco IOS: SNMP walk chassis entities'
+          type: SNMP_AGENT
+          snmp_oid: 'walk[1.3.6.1.2.1.47.1.1.1.1.5,1.3.6.1.2.1.47.1.1.1.1.11,1.3.6.1.2.1.47.1.1.1.1.13]'
+          key: system.hw.chassis.walk
+          delay: 1h
+          history: '0'
+          value_type: TEXT
+          description: |
+            MIB: ENTITY-MIB
+            Entity class, serial number and model name; source of the chassis hardware model name and serial number.
+          tags:
+            - tag: component
+              value: raw
         - uuid: a8062a554b8d447f81f7b9ef3229c7e9
           name: 'Hardware model name'
-          type: SNMP_AGENT
-          snmp_oid: 'get[1.3.6.1.2.1.47.1.1.1.1.13.1]'
+          type: DEPENDENT
           key: system.hw.model
-          delay: 1h
           value_type: CHAR
-          description: 'MIB: ENTITY-MIB'
+          description: |
+            MIB: ENTITY-MIB
+            entPhysicalModelName of the first chassis entity (entPhysicalClass = chassis(3)), falling back to entPhysicalIndex 1.
+            The chassis is not entPhysicalIndex 1 on every device (e.g. Catalyst 2960, 2960-S: 1001).
           inventory_link: MODEL
           preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var col = '13';
+                  var rows = {};
+                  value.split('\n').forEach(function (line) {
+                      var m = line.match(/^\.?1\.3\.6\.1\.2\.1\.47\.1\.1\.1\.1\.(5|11|13)\.(\d+) = [^:]+: ?(.*)$/);
+                      if (m) {
+                          (rows[m[2]] = rows[m[2]] || {})[m[1]] = m[3].replace(/^"|"$/g, '').trim();
+                      }
+                  });
+                  var idx = Object.keys(rows).map(Number).sort(function (a, b) { return a - b; });
+                  for (var i = 0; i < idx.length; i++) {
+                      var r = rows[idx[i]];
+                      if (/^(3|chassis\(3\))$/.test(r['5'] || '') && r[col]) {
+                          return r[col];
+                      }
+                  }
+                  return rows['1'] && rows['1'][col] ? rows['1'][col] : '';
             - type: DISCARD_UNCHANGED_HEARTBEAT
               parameters:
                 - 1d
+          master_item:
+            key: system.hw.chassis.walk
           tags:
             - tag: component
               value: system
         - uuid: 223fd2fe9699419c824ae310f1c8a631
           name: 'Hardware serial number'
-          type: SNMP_AGENT
-          snmp_oid: 'get[1.3.6.1.2.1.47.1.1.1.1.11.1]'
+          type: DEPENDENT
           key: system.hw.serialnumber
-          delay: 1h
           value_type: CHAR
-          description: 'MIB: ENTITY-MIB'
+          description: |
+            MIB: ENTITY-MIB
+            entPhysicalSerialNum of the first chassis entity (entPhysicalClass = chassis(3)), falling back to entPhysicalIndex 1.
+            The chassis is not entPhysicalIndex 1 on every device (e.g. Catalyst 2960, 2960-S: 1001).
           inventory_link: SERIALNO_A
           preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var col = '11';
+                  var rows = {};
+                  value.split('\n').forEach(function (line) {
+                      var m = line.match(/^\.?1\.3\.6\.1\.2\.1\.47\.1\.1\.1\.1\.(5|11|13)\.(\d+) = [^:]+: ?(.*)$/);
+                      if (m) {
+                          (rows[m[2]] = rows[m[2]] || {})[m[1]] = m[3].replace(/^"|"$/g, '').trim();
+                      }
+                  });
+                  var idx = Object.keys(rows).map(Number).sort(function (a, b) { return a - b; });
+                  for (var i = 0; i < idx.length; i++) {
+                      var r = rows[idx[i]];
+                      if (/^(3|chassis\(3\))$/.test(r['5'] || '') && r[col]) {
+                          return r[col];
+                      }
+                  }
+                  return rows['1'] && rows['1'][col] ? rows['1'][col] : '';
             - type: DISCARD_UNCHANGED_HEARTBEAT
               parameters:
                 - 1d
+          master_item:
+            key: system.hw.chassis.walk
           tags:
             - tag: component
               value: system
@@ -2720,35 +2778,93 @@ zabbix_export:
           tags:
             - tag: component
               value: system
+        - uuid: 1e4f38fd7d544e62bfb58f6987bf5b8e
+          name: 'Cisco IOS: SNMP walk chassis entities'
+          type: SNMP_AGENT
+          snmp_oid: 'walk[1.3.6.1.2.1.47.1.1.1.1.5,1.3.6.1.2.1.47.1.1.1.1.11,1.3.6.1.2.1.47.1.1.1.1.13]'
+          key: system.hw.chassis.walk
+          delay: 1h
+          history: '0'
+          value_type: TEXT
+          description: |
+            MIB: ENTITY-MIB
+            Entity class, serial number and model name; source of the chassis hardware model name and serial number.
+          tags:
+            - tag: component
+              value: raw
         - uuid: b5121a382d0245f0906bba4530a82ac4
           name: 'Hardware model name'
-          type: SNMP_AGENT
-          snmp_oid: 'get[1.3.6.1.2.1.47.1.1.1.1.13.1]'
+          type: DEPENDENT
           key: system.hw.model
-          delay: 1h
           value_type: CHAR
-          description: 'MIB: ENTITY-MIB'
+          description: |
+            MIB: ENTITY-MIB
+            entPhysicalModelName of the first chassis entity (entPhysicalClass = chassis(3)), falling back to entPhysicalIndex 1.
+            The chassis is not entPhysicalIndex 1 on every device (e.g. Catalyst 2960, 2960-S: 1001).
           inventory_link: MODEL
           preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var col = '13';
+                  var rows = {};
+                  value.split('\n').forEach(function (line) {
+                      var m = line.match(/^\.?1\.3\.6\.1\.2\.1\.47\.1\.1\.1\.1\.(5|11|13)\.(\d+) = [^:]+: ?(.*)$/);
+                      if (m) {
+                          (rows[m[2]] = rows[m[2]] || {})[m[1]] = m[3].replace(/^"|"$/g, '').trim();
+                      }
+                  });
+                  var idx = Object.keys(rows).map(Number).sort(function (a, b) { return a - b; });
+                  for (var i = 0; i < idx.length; i++) {
+                      var r = rows[idx[i]];
+                      if (/^(3|chassis\(3\))$/.test(r['5'] || '') && r[col]) {
+                          return r[col];
+                      }
+                  }
+                  return rows['1'] && rows['1'][col] ? rows['1'][col] : '';
             - type: DISCARD_UNCHANGED_HEARTBEAT
               parameters:
                 - 1d
+          master_item:
+            key: system.hw.chassis.walk
           tags:
             - tag: component
               value: system
         - uuid: 5934a35b54464f66ab19152ca393b882
           name: 'Hardware serial number'
-          type: SNMP_AGENT
-          snmp_oid: 'get[1.3.6.1.2.1.47.1.1.1.1.11.1]'
+          type: DEPENDENT
           key: system.hw.serialnumber
-          delay: 1h
           value_type: CHAR
-          description: 'MIB: ENTITY-MIB'
+          description: |
+            MIB: ENTITY-MIB
+            entPhysicalSerialNum of the first chassis entity (entPhysicalClass = chassis(3)), falling back to entPhysicalIndex 1.
+            The chassis is not entPhysicalIndex 1 on every device (e.g. Catalyst 2960, 2960-S: 1001).
           inventory_link: SERIALNO_A
           preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var col = '11';
+                  var rows = {};
+                  value.split('\n').forEach(function (line) {
+                      var m = line.match(/^\.?1\.3\.6\.1\.2\.1\.47\.1\.1\.1\.1\.(5|11|13)\.(\d+) = [^:]+: ?(.*)$/);
+                      if (m) {
+                          (rows[m[2]] = rows[m[2]] || {})[m[1]] = m[3].replace(/^"|"$/g, '').trim();
+                      }
+                  });
+                  var idx = Object.keys(rows).map(Number).sort(function (a, b) { return a - b; });
+                  for (var i = 0; i < idx.length; i++) {
+                      var r = rows[idx[i]];
+                      if (/^(3|chassis\(3\))$/.test(r['5'] || '') && r[col]) {
+                          return r[col];
+                      }
+                  }
+                  return rows['1'] && rows['1'][col] ? rows['1'][col] : '';
             - type: DISCARD_UNCHANGED_HEARTBEAT
               parameters:
                 - 1d
+          master_item:
+            key: system.hw.chassis.walk
           tags:
             - tag: component
               value: system
@@ -3841,35 +3957,93 @@ zabbix_export:
           tags:
             - tag: component
               value: system
+        - uuid: 1ed69c578c624b03aa2ff96ed6f7ae1a
+          name: 'Cisco IOS: SNMP walk chassis entities'
+          type: SNMP_AGENT
+          snmp_oid: 'walk[1.3.6.1.2.1.47.1.1.1.1.5,1.3.6.1.2.1.47.1.1.1.1.11,1.3.6.1.2.1.47.1.1.1.1.13]'
+          key: system.hw.chassis.walk
+          delay: 1h
+          history: '0'
+          value_type: TEXT
+          description: |
+            MIB: ENTITY-MIB
+            Entity class, serial number and model name; source of the chassis hardware model name and serial number.
+          tags:
+            - tag: component
+              value: raw
         - uuid: 12b69d0a3b844906a950bcedcbb8b9b8
           name: 'Hardware model name'
-          type: SNMP_AGENT
-          snmp_oid: 'get[1.3.6.1.2.1.47.1.1.1.1.13.1]'
+          type: DEPENDENT
           key: system.hw.model
-          delay: 1h
           value_type: CHAR
-          description: 'MIB: ENTITY-MIB'
+          description: |
+            MIB: ENTITY-MIB
+            entPhysicalModelName of the first chassis entity (entPhysicalClass = chassis(3)), falling back to entPhysicalIndex 1.
+            The chassis is not entPhysicalIndex 1 on every device (e.g. Catalyst 2960, 2960-S: 1001).
           inventory_link: MODEL
           preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var col = '13';
+                  var rows = {};
+                  value.split('\n').forEach(function (line) {
+                      var m = line.match(/^\.?1\.3\.6\.1\.2\.1\.47\.1\.1\.1\.1\.(5|11|13)\.(\d+) = [^:]+: ?(.*)$/);
+                      if (m) {
+                          (rows[m[2]] = rows[m[2]] || {})[m[1]] = m[3].replace(/^"|"$/g, '').trim();
+                      }
+                  });
+                  var idx = Object.keys(rows).map(Number).sort(function (a, b) { return a - b; });
+                  for (var i = 0; i < idx.length; i++) {
+                      var r = rows[idx[i]];
+                      if (/^(3|chassis\(3\))$/.test(r['5'] || '') && r[col]) {
+                          return r[col];
+                      }
+                  }
+                  return rows['1'] && rows['1'][col] ? rows['1'][col] : '';
             - type: DISCARD_UNCHANGED_HEARTBEAT
               parameters:
                 - 1d
+          master_item:
+            key: system.hw.chassis.walk
           tags:
             - tag: component
               value: system
         - uuid: 991021da67c84f96a76154078c45f3be
           name: 'Hardware serial number'
-          type: SNMP_AGENT
-          snmp_oid: 'get[1.3.6.1.2.1.47.1.1.1.1.11.1]'
+          type: DEPENDENT
           key: system.hw.serialnumber
-          delay: 1h
           value_type: CHAR
-          description: 'MIB: ENTITY-MIB'
+          description: |
+            MIB: ENTITY-MIB
+            entPhysicalSerialNum of the first chassis entity (entPhysicalClass = chassis(3)), falling back to entPhysicalIndex 1.
+            The chassis is not entPhysicalIndex 1 on every device (e.g. Catalyst 2960, 2960-S: 1001).
           inventory_link: SERIALNO_A
           preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var col = '11';
+                  var rows = {};
+                  value.split('\n').forEach(function (line) {
+                      var m = line.match(/^\.?1\.3\.6\.1\.2\.1\.47\.1\.1\.1\.1\.(5|11|13)\.(\d+) = [^:]+: ?(.*)$/);
+                      if (m) {
+                          (rows[m[2]] = rows[m[2]] || {})[m[1]] = m[3].replace(/^"|"$/g, '').trim();
+                      }
+                  });
+                  var idx = Object.keys(rows).map(Number).sort(function (a, b) { return a - b; });
+                  for (var i = 0; i < idx.length; i++) {
+                      var r = rows[idx[i]];
+                      if (/^(3|chassis\(3\))$/.test(r['5'] || '') && r[col]) {
+                          return r[col];
+                      }
+                  }
+                  return rows['1'] && rows['1'][col] ? rows['1'][col] : '';
             - type: DISCARD_UNCHANGED_HEARTBEAT
               parameters:
                 - 1d
+          master_item:
+            key: system.hw.chassis.walk
           tags:
             - tag: component
               value: system
