@@ -153,6 +153,12 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           description: 'Discovering system fans.'
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '1'
+                - 'No Such (Object|Instance)'
+              error_handler: CUSTOM_VALUE
           tags:
             - tag: component
               value: raw
@@ -164,6 +170,12 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           description: 'The table of power supply status maintained by the environmental monitor card.'
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '1'
+                - 'No Such (Object|Instance)'
+              error_handler: CUSTOM_VALUE
           tags:
             - tag: component
               value: raw
@@ -175,6 +187,12 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           description: 'Discovery of ciscoEnvMonTemperatureTable (ciscoEnvMonTemperatureDescr), a table of ambient temperature status maintained by the environmental monitor.'
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '1'
+                - 'No Such (Object|Instance)'
+              error_handler: CUSTOM_VALUE
           tags:
             - tag: component
               value: raw
@@ -2622,6 +2640,12 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           description: 'Discovering system fans.'
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '1'
+                - 'No Such (Object|Instance)'
+              error_handler: CUSTOM_VALUE
           tags:
             - tag: component
               value: raw
@@ -2633,6 +2657,12 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           description: 'The table of power supply status maintained by the environmental monitor card.'
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '1'
+                - 'No Such (Object|Instance)'
+              error_handler: CUSTOM_VALUE
           tags:
             - tag: component
               value: raw
@@ -2644,6 +2674,12 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           description: 'Discovery of ciscoEnvMonTemperatureTable (ciscoEnvMonTemperatureDescr), a table of ambient temperature status maintained by the environmental monitor.'
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '1'
+                - 'No Such (Object|Instance)'
+              error_handler: CUSTOM_VALUE
           tags:
             - tag: component
               value: raw
@@ -3753,6 +3789,12 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           description: 'Discovering system fans.'
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '1'
+                - 'No Such (Object|Instance)'
+              error_handler: CUSTOM_VALUE
           tags:
             - tag: component
               value: raw
@@ -3764,6 +3806,12 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           description: 'The table of power supply status maintained by the environmental monitor card.'
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '1'
+                - 'No Such (Object|Instance)'
+              error_handler: CUSTOM_VALUE
           tags:
             - tag: component
               value: raw
@@ -3775,6 +3823,12 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           description: 'Discovery of ciscoEnvMonTemperatureTable (ciscoEnvMonTemperatureDescr), a table of ambient temperature status maintained by the environmental monitor.'
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '1'
+                - 'No Such (Object|Instance)'
+              error_handler: CUSTOM_VALUE
           tags:
             - tag: component
               value: raw
