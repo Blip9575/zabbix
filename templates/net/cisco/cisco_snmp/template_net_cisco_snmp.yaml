@@ -351,7 +351,7 @@ zabbix_export:
               value: system
           triggers:
             - uuid: 7d1460eaf7ad46fd8a1b5df3c20051ba
-              expression: 'last(/Cisco IOS by SNMP/system.hw.serialnumber,#1)<>last(/Cisco IOS by SNMP/system.hw.serialnumber,#2) and length(last(/Cisco IOS by SNMP/system.hw.serialnumber))>0'
+              expression: 'last(/Cisco IOS by SNMP/system.hw.serialnumber,#1)<>last(/Cisco IOS by SNMP/system.hw.serialnumber,#2) and length(last(/Cisco IOS by SNMP/system.hw.serialnumber))>0 and length(last(/Cisco IOS by SNMP/system.hw.serialnumber,#2))>0'
               name: 'Cisco IOS: Device has been replaced'
               event_name: 'Cisco IOS: Device has been replaced (new serial number received)'
               priority: INFO
@@ -2922,7 +2922,7 @@ zabbix_export:
               value: system
           triggers:
             - uuid: d53c0d22a67544cf8a2fcd2c8de4d4eb
-              expression: 'last(/Cisco IOS prior to 12.0_3_T by SNMP/system.hw.serialnumber,#1)<>last(/Cisco IOS prior to 12.0_3_T by SNMP/system.hw.serialnumber,#2) and length(last(/Cisco IOS prior to 12.0_3_T by SNMP/system.hw.serialnumber))>0'
+              expression: 'last(/Cisco IOS prior to 12.0_3_T by SNMP/system.hw.serialnumber,#1)<>last(/Cisco IOS prior to 12.0_3_T by SNMP/system.hw.serialnumber,#2) and length(last(/Cisco IOS prior to 12.0_3_T by SNMP/system.hw.serialnumber))>0 and length(last(/Cisco IOS prior to 12.0_3_T by SNMP/system.hw.serialnumber,#2))>0'
               name: 'Cisco IOS: Device has been replaced'
               event_name: 'Cisco IOS: Device has been replaced (new serial number received)'
               priority: INFO
@@ -4122,7 +4122,7 @@ zabbix_export:
               value: system
           triggers:
             - uuid: 78723249679b4a288861f4ad8621fd77
-              expression: 'last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/system.hw.serialnumber,#1)<>last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/system.hw.serialnumber,#2) and length(last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/system.hw.serialnumber))>0'
+              expression: 'last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/system.hw.serialnumber,#1)<>last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/system.hw.serialnumber,#2) and length(last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/system.hw.serialnumber))>0 and length(last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/system.hw.serialnumber,#2))>0'
               name: 'Cisco IOS: Device has been replaced'
               event_name: 'Cisco IOS: Device has been replaced (new serial number received)'
               priority: INFO
