@@ -1106,7 +1106,8 @@ zabbix_export:
               expression: |
                 (avg(/Cisco IOS by SNMP/net.if.in[ifHCInOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX:"{#IFNAME}"}/100)*last(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}]) or
                 avg(/Cisco IOS by SNMP/net.if.out[ifHCOutOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX:"{#IFNAME}"}/100)*last(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])) and
-                last(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0
+                last(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0 and
+                last(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])=last(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}],#1:now-15m)
               recovery_mode: RECOVERY_EXPRESSION
               recovery_expression: |
                 avg(/Cisco IOS by SNMP/net.if.in[ifHCInOctets.{#SNMPINDEX}],15m)<(({$IF.UTIL.MAX:"{#IFNAME}"}-3)/100)*last(/Cisco IOS by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}]) and
@@ -1115,7 +1116,7 @@ zabbix_export:
               event_name: 'Cisco IOS: Interface {#IFNAME}({#IFALIAS}): High bandwidth usage (>{$IF.UTIL.MAX:"{#IFNAME}"}%)'
               opdata: 'In: {ITEM.LASTVALUE1}, out: {ITEM.LASTVALUE3}, speed: {ITEM.LASTVALUE2}'
               priority: WARNING
-              description: 'The utilization of the network interface is close to its estimated maximum bandwidth.'
+              description: 'The utilization of the network interface is close to its estimated maximum bandwidth. Only evaluated when the interface speed is the same as 15 minutes ago: after a renegotiation to a lower speed (e.g. a client going to sleep at 10 Mbit/s) the 15-minute traffic average still holds the traffic of the old speed.'
               manual_close: 'YES'
               dependencies:
                 - name: 'Cisco IOS: Interface {#IFNAME}({#IFALIAS}): Link down'
@@ -4710,7 +4711,8 @@ zabbix_export:
               expression: |
                 (avg(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.in[ifHCInOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX:"{#IFNAME}"}/100)*last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}]) or
                 avg(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.out[ifHCOutOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX:"{#IFNAME}"}/100)*last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])) and
-                last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0
+                last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0 and
+                last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])=last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}],#1:now-15m)
               recovery_mode: RECOVERY_EXPRESSION
               recovery_expression: |
                 avg(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.in[ifHCInOctets.{#SNMPINDEX}],15m)<(({$IF.UTIL.MAX:"{#IFNAME}"}-3)/100)*last(/Cisco IOS versions 12.0_3_T-12.2_3.5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}]) and
@@ -4719,7 +4721,7 @@ zabbix_export:
               event_name: 'Cisco IOS: Interface {#IFNAME}({#IFALIAS}): High bandwidth usage (>{$IF.UTIL.MAX:"{#IFNAME}"}%)'
               opdata: 'In: {ITEM.LASTVALUE1}, out: {ITEM.LASTVALUE3}, speed: {ITEM.LASTVALUE2}'
               priority: WARNING
-              description: 'The utilization of the network interface is close to its estimated maximum bandwidth.'
+              description: 'The utilization of the network interface is close to its estimated maximum bandwidth. Only evaluated when the interface speed is the same as 15 minutes ago: after a renegotiation to a lower speed (e.g. a client going to sleep at 10 Mbit/s) the 15-minute traffic average still holds the traffic of the old speed.'
               manual_close: 'YES'
               dependencies:
                 - name: 'Cisco IOS: Interface {#IFNAME}({#IFALIAS}): Link down'
