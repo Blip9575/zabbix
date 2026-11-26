@@ -80,6 +80,8 @@ To install the script:
 
 |Name|Description|Default|Type|
 |----|-----------|-------|----|
+|{$ZFS_ARC_DNODE_ALERT}|<p>Percentage of arc_dnode_limit above which "ZFS ARC dnode size" fires. Set it per host to raise the threshold.</p>|`90`|Text macro|
+|{$ZFS_ARC_DNODE_RECOVER}|<p>Percentage of arc_dnode_limit below which "ZFS ARC dnode size" recovers.</p>|`85`|Text macro|
 |{$ZFS_ARC_META_ALERT}|<p>-</p>|`90`|Text macro|
 |{$ZFS_AVERAGE_ALERT}|<p>-</p>|`90`|Text macro|
 |{$ZFS_DISASTER_ALERT}|<p>-</p>|`99`|Text macro|

@@ -1092,6 +1092,12 @@ zabbix_export:
                     host: 'ZFS on Linux'
                     key: 'zfs.vdev.error_counter.write[{#VDEV}]'
       macros:
+        - macro: '{$ZFS_ARC_DNODE_ALERT}'
+          value: '90'
+          description: 'Percentage of arc_dnode_limit above which "ZFS ARC dnode size" fires. Set it per host to raise the threshold where the dnode cache normally runs close to its limit.'
+        - macro: '{$ZFS_ARC_DNODE_RECOVER}'
+          value: '85'
+          description: 'Percentage of arc_dnode_limit below which "ZFS ARC dnode size" recovers.'
         - macro: '{$ZFS_ARC_META_ALERT}'
           value: '90'
         - macro: '{$ZFS_AVERAGE_ALERT}'
@@ -1306,9 +1312,15 @@ zabbix_export:
               newvalue: 'No scrub in progress'
   triggers:
     - uuid: 1daac44b853b4b6da767c9c3af96b774
-      expression: 'last(/ZFS on Linux/zfs.arcstats[dnode_size])>(last(/ZFS on Linux/zfs.arcstats[arc_dnode_limit])*0.9)'
-      name: 'ZFS ARC dnode size > 90% dnode max size on {HOST.NAME}'
-      priority: HIGH
+      expression: 'min(/ZFS on Linux/zfs.arcstats[dnode_size],1h)>(last(/ZFS on Linux/zfs.arcstats[arc_dnode_limit])*0.01*{$ZFS_ARC_DNODE_ALERT})'
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'last(/ZFS on Linux/zfs.arcstats[dnode_size])<(last(/ZFS on Linux/zfs.arcstats[arc_dnode_limit])*0.01*{$ZFS_ARC_DNODE_RECOVER})'
+      name: 'ZFS ARC dnode size > {$ZFS_ARC_DNODE_ALERT}% dnode max size for 1h on {HOST.NAME}'
+      priority: INFO
+      description: 'Changed in this fork: Information severity, fires only when the dnode cache stays above {$ZFS_ARC_DNODE_ALERT}% of arc_dnode_limit for a full hour, and clears below {$ZFS_ARC_DNODE_RECOVER}%. On Proxmox VE nodes with a small ARC the dnode cache normally runs close to its limit, so the upstream High/instant trigger flapped. Tagged notify=muted: shown on the console, kept out of notifications by the action condition "Tag notify does not equal muted".'
+      tags:
+        - tag: notify
+          value: muted
     - uuid: 69c18b7ceb3d4da2bda0e05f9a12453f
       expression: 'min(/ZFS on Linux/zfs.arcstats[arc_meta_used],1h)>(last(/ZFS on Linux/zfs.arcstats[c_max])*0.01*{$ZFS_ARC_META_ALERT})'
       name: 'ZFS ARC meta size > {$ZFS_ARC_META_ALERT}% of ARC max size for 1h on {HOST.NAME}'
