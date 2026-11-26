@@ -1242,6 +1242,10 @@ zabbix_export:
       expression: 'last(/ZFS on Linux/zfs.arcstats[dnode_size])>(last(/ZFS on Linux/zfs.arcstats[arc_dnode_limit])*0.9)'
       name: 'ZFS ARC dnode size > 90% dnode max size on {HOST.NAME}'
       priority: HIGH
+      description: 'Notifications muted in this fork: the dnode cache routinely sits near its limit on Proxmox VE nodes (16 problems in 14 days on one node) without a real fault. The problem stays visible; an action condition "Tag notify does not equal muted" keeps it out of notifications.'
+      tags:
+        - tag: notify
+          value: muted
     - uuid: 69c18b7ceb3d4da2bda0e05f9a12453f
       expression: 'last(/ZFS on Linux/zfs.arcstats[arc_meta_used])>(last(/ZFS on Linux/zfs.arcstats[arc_meta_limit])*0.01*{$ZFS_ARC_META_ALERT})'
       name: 'ZFS ARC meta size > {$ZFS_ARC_META_ALERT}% meta max size on {HOST.NAME}'
