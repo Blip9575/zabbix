@@ -1310,11 +1310,13 @@ zabbix_export:
       name: 'ZFS ARC dnode size > 90% dnode max size on {HOST.NAME}'
       priority: HIGH
     - uuid: 69c18b7ceb3d4da2bda0e05f9a12453f
-      expression: 'last(/ZFS on Linux/zfs.arcstats[arc_meta_used])>(last(/ZFS on Linux/zfs.arcstats[arc_meta_limit])*0.01*{$ZFS_ARC_META_ALERT})'
-      name: 'ZFS ARC meta size > {$ZFS_ARC_META_ALERT}% meta max size on {HOST.NAME}'
-      status: DISABLED
-      priority: HIGH
-      description: 'Disabled in this fork: it compares arc_meta_used with arc_meta_limit, which OpenZFS 2.2 removed, so it cannot evaluate on current Proxmox VE nodes.'
+      expression: 'min(/ZFS on Linux/zfs.arcstats[arc_meta_used],1h)>(last(/ZFS on Linux/zfs.arcstats[c_max])*0.01*{$ZFS_ARC_META_ALERT})'
+      name: 'ZFS ARC meta size > {$ZFS_ARC_META_ALERT}% of ARC max size for 1h on {HOST.NAME}'
+      priority: INFO
+      description: 'Changed in this fork: OpenZFS 2.2 removed arc_meta_limit, so this compares arc_meta_used with the ARC maximum size (c_max) instead. Information severity, fires only when it stays above {$ZFS_ARC_META_ALERT}% for a full hour. Tagged notify=muted: shown on the console, kept out of notifications by the action condition "Tag notify does not equal muted".'
+      tags:
+        - tag: notify
+          value: muted
   graphs:
     - uuid: 1510111dc5414e6d80a5230ce6a81f1d
       name: 'ZFS ARC arc_meta_used breakdown'
