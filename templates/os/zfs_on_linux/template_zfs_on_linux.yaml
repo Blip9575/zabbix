@@ -39,7 +39,9 @@ zabbix_export:
           name: 'ZFS ARC stat "arc_meta_limit"'
           key: 'zfs.arcstats[arc_meta_limit]'
           history: 30d
+          status: DISABLED
           units: B
+          description: 'Disabled in this fork: OpenZFS 2.2 and later no longer provide arc_meta_limit, so this item is unsupported on current Proxmox VE (OpenZFS 2.2+). Enable it only on hosts with an older OpenZFS.'
           tags:
             - tag: Application
               value: ZFS
@@ -320,7 +322,9 @@ zabbix_export:
           key: 'zfs.get.param[zfs_arc_meta_limit_percent]'
           delay: 1h
           history: 30d
+          status: DISABLED
           units: '%'
+          description: 'Disabled in this fork: OpenZFS 2.2 and later no longer provide the zfs_arc_meta_limit_percent module parameter, so this item is unsupported on current Proxmox VE (OpenZFS 2.2+). Enable it only on hosts with an older OpenZFS.'
           tags:
             - tag: Application
               value: ZFS
@@ -1249,7 +1253,9 @@ zabbix_export:
     - uuid: 69c18b7ceb3d4da2bda0e05f9a12453f
       expression: 'last(/ZFS on Linux/zfs.arcstats[arc_meta_used])>(last(/ZFS on Linux/zfs.arcstats[arc_meta_limit])*0.01*{$ZFS_ARC_META_ALERT})'
       name: 'ZFS ARC meta size > {$ZFS_ARC_META_ALERT}% meta max size on {HOST.NAME}'
+      status: DISABLED
       priority: HIGH
+      description: 'Disabled in this fork: it compares arc_meta_used with arc_meta_limit, and OpenZFS 2.2 and later no longer provide arc_meta_limit, so the trigger can never evaluate on current Proxmox VE. Enable it, together with the two arc_meta_limit items, only on hosts with an older OpenZFS.'
   graphs:
     - uuid: 1510111dc5414e6d80a5230ce6a81f1d
       name: 'ZFS ARC arc_meta_used breakdown'
