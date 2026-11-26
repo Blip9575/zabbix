@@ -1088,6 +1088,9 @@ zabbix_export:
                     host: 'ZFS on Linux'
                     key: 'zfs.vdev.error_counter.write[{#VDEV}]'
       macros:
+        - macro: '{$ZFS_ARC_DNODE_ALERT}'
+          value: '90'
+          description: 'Percentage of arc_dnode_limit above which "ZFS ARC dnode size" fires. Set it per host to raise the threshold where the dnode cache normally runs close to its limit.'
         - macro: '{$ZFS_ARC_META_ALERT}'
           value: '90'
         - macro: '{$ZFS_AVERAGE_ALERT}'
@@ -1302,8 +1305,8 @@ zabbix_export:
               newvalue: 'No scrub in progress'
   triggers:
     - uuid: 1daac44b853b4b6da767c9c3af96b774
-      expression: 'last(/ZFS on Linux/zfs.arcstats[dnode_size])>(last(/ZFS on Linux/zfs.arcstats[arc_dnode_limit])*0.9)'
-      name: 'ZFS ARC dnode size > 90% dnode max size on {HOST.NAME}'
+      expression: 'last(/ZFS on Linux/zfs.arcstats[dnode_size])>(last(/ZFS on Linux/zfs.arcstats[arc_dnode_limit])*0.01*{$ZFS_ARC_DNODE_ALERT})'
+      name: 'ZFS ARC dnode size > {$ZFS_ARC_DNODE_ALERT}% dnode max size on {HOST.NAME}'
       priority: HIGH
       description: 'Notifications muted in this fork: the dnode cache routinely sits near its limit on Proxmox VE nodes (16 problems in 14 days on one node) without a real fault. The problem stays visible; an action condition "Tag notify does not equal muted" keeps it out of notifications.'
       tags:
