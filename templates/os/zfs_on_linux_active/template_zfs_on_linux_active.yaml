@@ -1312,7 +1312,9 @@ zabbix_export:
     - uuid: 69c18b7ceb3d4da2bda0e05f9a12453f
       expression: 'last(/ZFS on Linux/zfs.arcstats[arc_meta_used])>(last(/ZFS on Linux/zfs.arcstats[arc_meta_limit])*0.01*{$ZFS_ARC_META_ALERT})'
       name: 'ZFS ARC meta size > {$ZFS_ARC_META_ALERT}% meta max size on {HOST.NAME}'
+      status: DISABLED
       priority: HIGH
+      description: 'Disabled in this fork: it compares arc_meta_used with arc_meta_limit, which OpenZFS 2.2 removed, so it cannot evaluate on current Proxmox VE nodes.'
   graphs:
     - uuid: 1510111dc5414e6d80a5230ce6a81f1d
       name: 'ZFS ARC arc_meta_used breakdown'
