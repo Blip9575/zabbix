@@ -43,6 +43,8 @@ zabbix_export:
           key: 'zfs.arcstats[arc_meta_limit]'
           history: 30d
           units: B
+          status: DISABLED
+          description: 'Disabled in this fork: removed in OpenZFS 2.2, so the item is unsupported on current Proxmox VE nodes.'
           tags:
             - tag: Application
               value: ZFS
@@ -345,6 +347,8 @@ zabbix_export:
           delay: 1h
           history: 30d
           units: '%'
+          status: DISABLED
+          description: 'Disabled in this fork: removed in OpenZFS 2.2, so the item is unsupported on current Proxmox VE nodes.'
           tags:
             - tag: Application
               value: ZFS
